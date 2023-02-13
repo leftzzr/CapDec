@@ -46,7 +46,7 @@ def change_gender_randomly(caption):
 
 
 def main(clip_model_type, clip_model_name, out_path, annotations_path, images_path, fix_gender_imbalance, data_mode):
-    clip_model, preprocess = clip.load(clip_model_type, device=device, jit=False)
+    clip_model, preprocess = clip.load(clip_model_type, device=device, jit=False)  # 加载预处理的模型
     with open(annotations_path, 'r') as f:
         data = json.load(f)
     print("%0d captions loaded from json " % len(data))
@@ -55,7 +55,7 @@ def main(clip_model_type, clip_model_name, out_path, annotations_path, images_pa
     all_text_embeddings = []
     long_caps = 0
     not_found = 0
-    for i in tqdm(range(len(data))):
+    for i in tqdm(range(len(data))):  # 进度条
         d = data[i]
         img_id = d["image_id"]
         if not add_text_embedding:
@@ -64,13 +64,13 @@ def main(clip_model_type, clip_model_name, out_path, annotations_path, images_pa
                     filename = f"./data/coco/train2014/COCO_train2014_{int(img_id):012d}.jpg"
                 else:
                     filename = images_path + d['filename']
-                if os.path.isfile(filename):
-                    image = io.imread(filename)
+                if os.path.isfile(filename):  # 判断是否为文件
+                    image = io.imread(filename)  # 读入图片
                 else:
                     not_found += 1
                     continue
-                image = preprocess(Image.fromarray(image)).unsqueeze(0).to(device)
-        with torch.no_grad():
+                image = preprocess(Image.fromarray(image)).unsqueeze(0).to(device)  # array转换成image
+        with torch.no_grad():  # 关闭梯度计算
             if add_text_embedding:
                 prefix = torch.tensor([])  # empty tensor
                 caption = d["caption"]
@@ -78,7 +78,7 @@ def main(clip_model_type, clip_model_name, out_path, annotations_path, images_pa
                     if caption_has_gender_term(caption, gender_mode=(fix_gender_imbalance-1)):
                         caption = change_gender_randomly(caption)
                 try:  # if caption is too long
-                    caption_tokens = clip.tokenize(caption).to(device)
+                    caption_tokens = clip.tokenize(caption).to(device)  # 对字幕进行向量化
                 except:
                     caption_tokens = clip.tokenize(caption[:100]).to(device)
                     long_caps += 1
